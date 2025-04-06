@@ -16,6 +16,8 @@ load_dotenv()
 # Set up OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+from flask_cors import CORS
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
 CORS(app)
@@ -24,23 +26,31 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 if not GOOGLE_CLIENT_ID:
     raise ValueError("Missing GOOGLE_CLIENT_ID in .env file")
 
+''' this is the endpoint for AUTHENTICATION FLOW with Google Currently doing all this in front end for getting user info / token
 @app.route("/login", methods=["POST"])
 def login():
-    token = request.json.get("token")
+    token = request.json.get("token")  # ID token from frontend
     app.logger.info(f"Received token: {token}")
 
     try:
+        # Verify the token with Google's OAuth2 API
         id_info = id_token.verify_oauth2_token(token, Request(), GOOGLE_CLIENT_ID)
         app.logger.info(f"Token decoded successfully: {id_info}")
+
         user = {
             'user_id': id_info["sub"],
             'email': id_info.get("email"),
             'name': id_info.get("name")
         }
         return jsonify({"message": "User authenticated", "user": user})
+    
     except ValueError:
         app.logger.warning("Invalid token")
         return jsonify({"error": "Invalid token"}), 400
+
+if __name__ == "__main__":
+    app.run(debug=True)
+'''
 
 @app.route("/generate", methods=["POST"])
 def generate():

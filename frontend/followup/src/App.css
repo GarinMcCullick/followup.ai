@@ -94,7 +94,7 @@
   display: none; /* Hide the default file input */
 }
 
-button {
+.generate-button {
   margin-top: 2rem;
   background-color: #fff;
   border: 2px solid #333;
@@ -106,7 +106,7 @@ button {
   transition: background-color 0.3s ease;
 }
 
-button:hover {
+.generate-button:hover {
   background-color: green;
   color: #fff;
 }
@@ -157,4 +157,144 @@ button:disabled {
   overflow-wrap: break-word;
   word-wrap: break-word;
   white-space: pre-wrap;
+}
+
+/************************************************************SIGN IN PAGE************************************************************/
+.stars,
+.twinkling {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.stars {
+  z-index: -2; /* Ensure stars stay behind everything */
+  background: #000 url("https://i.imgur.com/YKY28eT.png") repeat top center;
+  opacity: 1; /* Make the stars more pronounced */
+}
+
+.twinkling {
+  z-index: -1; /* Twinkling stars should be behind the form but above stars */
+  background: transparent url("https://i.imgur.com/XYMF4ca.png") repeat top
+    center;
+  animation: move-twink-back 200s linear infinite;
+  opacity: 1; /* Make twinkling stars more visible */
+}
+
+@keyframes move-twink-back {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -10000px 5000px;
+  }
+}
+
+/* Styling for the login screen */
+.login-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content both vertically and horizontally */
+  height: 100vh;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  background: rgb(0, 0, 0);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(20, 0, 40, 0.75) 100%
+  );
+  background-size: 200% 200%;
+  animation: rotateColors 20s infinite ease-in-out;
+}
+
+/* Starry effect */
+.login-screen::before,
+.login-screen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Stars and twinkling should be behind the content */
+}
+
+.login-screen::before {
+  background: #000 url("https://i.imgur.com/YKY28eT.png") repeat top center;
+}
+
+.login-screen::after {
+  background: transparent url("https://i.imgur.com/XYMF4ca.png") repeat top
+    center;
+  animation: move-twink-back 200s linear infinite;
+}
+
+/* Styling for the login form with rounded corners */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #2d2d2d;
+  padding: 20px;
+  border-radius: 100%;
+  width: 25%;
+  height: 50%;
+  box-shadow: 0 0 20px rgba(253, 252, 252, 0.3),
+    /* Dimmer soft glow */ 0 0 40px rgba(253, 252, 252, 0.2),
+    /* Larger, more subtle glow */ 0 10px 20px rgba(0, 0, 0, 0.15); /* Darker shadow with lower opacity */
+  position: relative;
+  overflow: hidden;
+  margin-top: 20px; /* Space from the top */
+  z-index: 2; /* Ensure form stays on top of everything else */
+}
+
+/* Ensure the button container takes the full height of the parent */
+.login-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+/* Style the Google Login Button */
+.google-login-btn {
+  background-color: #4285f4;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  padding: 20px 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  width: 100%;
+  height: 100%; /* Set the height to match the circular shape */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* Hover effect to slightly grow the button */
+.google-login-btn:hover {
+  background-color: #357ae8;
+  transform: scale(1.05);
+}
+
+/* Optionally, a focus effect */
+.google-login-btn:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
