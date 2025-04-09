@@ -12,3 +12,6 @@ venv/
 # Ignore IDE-specific files (VSCode, PyCharm, etc.)
 .vscode/
 .idea/
+
+#firebase sdk key
+followup-ca7c3-firebase-adminsdk-fbsvc-00955a74c3.json

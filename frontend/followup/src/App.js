@@ -8,7 +8,7 @@ export default function App() {
   const [followUp, setFollowUp] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  //const [token, setToken] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
   const [jobPosting, setJobPosting] = useState("");
   const [fileName, setFileName] = useState("");
@@ -21,7 +21,7 @@ export default function App() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (token) => {
     if (!resumeFile || !jobPosting) {
       alert("Please provide both a resume and job posting text.");
       return;
