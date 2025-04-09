@@ -1,0 +1,65 @@
+#followup-widget {
+  font-size: 14px;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 999999;
+  font-family: sans-serif;
+  max-width: 10vw; /* Limit width on large screens */
+  width: 100%; /* Make widget take up full width on small screens */
+  box-sizing: border-box;
+  cursor: grab; /* Add grab cursor for draggable */
+  height: 120px; /* Set a fixed height */
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: end;
+}
+
+#followup-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding-top: 30%;
+}
+
+#followup-send {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%; /* Make button full width on smaller screens */
+  box-sizing: border-box;
+}
+
+#followup-send:hover {
+  background: #0056b3; /* Darker blue on hover */
+}
+
+.responsive-icon {
+  width: 10px;
+  height: 10px;
+  vertical-align: middle; /* Align icon with text */
+}
+
+@media (max-width: 600px) {
+  #followup-widget {
+    bottom: 15px;
+    right: 15px;
+    padding: 10px;
+  }
+
+  #followup-send {
+    margin-top: 6px;
+    padding: 5px 10px;
+  }
+}

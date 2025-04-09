@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "FollowUp",
+  "version": "1.0",
+  "description": "FollowUp's UI for our webpage scraper",
+  "icons": {
+    "16": "icon.ico",
+    "48": "icon.ico",
+    "128": "icon.ico"
+  },
+  "host_permissions": ["https://*.linkedin.com/*", "https://*.indeed.com/*"],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/jobs/view/*",
+        "https://*.linkedin.com/jobs/*",
+        "https://*.linkedin.com/*",
+        "https://*.indeed.com/viewjob*",
+        "https://*.indeed.com/jobs*",
+        "https://*.indeed.com/*"
+      ],
+      "js": ["popup.js"],
+      "css": ["popup.css"]
+    }
+  ]
+}
