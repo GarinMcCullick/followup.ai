@@ -18,6 +18,10 @@
   display: flex;
   flex-flow: column nowrap;
   justify-content: end;
+  user-select: none; /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 #followup-inner {
