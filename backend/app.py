@@ -9,7 +9,9 @@ from resume_parser import extract_text_from_pdf, parse_resume
 from generator import generate_content
 from werkzeug.utils import secure_filename
 import jwt
+import requests
 from routes import routes  # Import the Blueprint
+import logging
 
 # Initialize the Flask app
 app = Flask(__name__)
@@ -20,13 +22,22 @@ load_dotenv()
 # Set up OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+#googles token info api
+GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo"
+
 from flask_cors import CORS
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
 
 # Set up CORS
-CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://www.indeed.com"]}})
+from flask_cors import CORS
+
+# Apply CORS to all routes
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://www.indeed.com"]},
+                     r"/generate": {"origins": ["http://localhost:3000"]},
+                     r"/auth/callback": {"origins": ["http://localhost:3000"]}})
+CORS(app, resources={r"*": {"origins": ["http://localhost:3000"]}})
 
 # Register Blueprint
 app.register_blueprint(routes)
@@ -35,55 +46,103 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 if not GOOGLE_CLIENT_ID:
     raise ValueError("Missing GOOGLE_CLIENT_ID in .env file")
 
-''' this is the endpoint for AUTHENTICATION FLOW with Google Currently doing all this in front end for getting user info / token
-@app.route("/login", methods=["POST"])
-def login():
-    token = request.json.get("token")  # ID token from frontend
-    app.logger.info(f"Received token: {token}")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+REDIRECT_URI = "http://localhost:3000/auth/callback"  # Same as frontend redirect
 
-    try:
-        # Verify the token with Google's OAuth2 API
-        id_info = id_token.verify_oauth2_token(token, Request(), GOOGLE_CLIENT_ID)
-        app.logger.info(f"Token decoded successfully: {id_info}")
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-        user = {
-            'user_id': id_info["sub"],
-            'email': id_info.get("email"),
-            'name': id_info.get("name")
-        }
-        return jsonify({"message": "User authenticated", "user": user})
+@app.route('/auth/callback', methods=['POST'])
+def auth_callback():
+    if request.method == 'OPTIONS':
+        # Respond to preflight request
+        return '', 200
+
+    # Get the authorization code from the request body
+    data = request.get_json()
+    logging.info(f"Request data: {data}")
     
-    except ValueError:
-        app.logger.warning("Invalid token")
-        return jsonify({"error": "Invalid token"}), 400
+    code = data.get('code')
+    client_id = data.get('clientId')
+    redirect_uri = data.get('redirectUri')
 
-if __name__ == "__main__":
-    app.run(debug=True)
-'''
+    if not code or not client_id or not redirect_uri:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Exchange the authorization code for an access token
+    token_url = "https://oauth2.googleapis.com/token"
+    token_data = {
+        'code': code,
+        'client_id': client_id,
+        'client_secret': GOOGLE_CLIENT_SECRET,
+        'redirect_uri': redirect_uri,
+        'grant_type': 'authorization_code',
+    }
+
+    token_response = requests.post(token_url, data=token_data)
+    logging.info(f"Token response: {token_response.status_code} {token_response.text}")
+    
+    if token_response.status_code != 200:
+        return jsonify({"error": "Failed to exchange authorization code for token"}), 400
+
+    # Parse the response to get the access token and refresh token
+    token_data = token_response.json()
+    access_token = token_data.get('access_token')
+    id_token = token_data.get('id_token')
+
+    # Use the access token to retrieve the user's info from Google
+    user_info_response = requests.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    logging.info(f"User info response: {user_info_response.status_code} {user_info_response.text}")
+
+    if user_info_response.status_code != 200:
+        return jsonify({"error": "Failed to retrieve user info"}), 400
+
+    # Parse the user info response
+    user_info = user_info_response.json()
+
+    # Return the user info along with the tokens
+    return jsonify({
+        "user": user_info,
+        "access_token": access_token,
+        "id_token": id_token,
+    })
 
 @app.route("/generate", methods=["POST"])
 def generate():
+    if request.method == "OPTIONS":
+        # Handle preflight CORS requests
+        return '', 200
+
     auth_header = request.headers.get("Authorization")
+    extension_key = request.headers.get("X-Extension-API-Key")
+
     app.logger.info(f"Received Authorization header: {auth_header}")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        app.logger.warning("Missing or invalid auth token")
-        return jsonify({"error": "Missing or invalid auth token"}), 401
+    app.logger.info(f"Received Extension API Key: {extension_key}")
+    # Step 1: Check if there's an Authorization header
+    if auth_header:
+        token = auth_header.split(" ")[1]  # Extract token from "Bearer {token}"
+        try:
+            # Verify the OAuth 2.0 token with Google's API
+            id_info = id_token.verify_oauth2_token(token, Request(), GOOGLE_CLIENT_ID)
+            app.logger.info(f"Decoded token information: {id_info}")
+        except Exception as e:
+            app.logger.warning(f"OAuth token error: {e}")
+            return jsonify({"error": "Invalid token"}), 401
 
-    token = auth_header.split(" ")[1]
-    app.logger.info(f"Extracted token: {token}")
+    # Step 2: Check for the Extension API Key (for non-OAuth access)
+    elif extension_key and extension_key == EXTENSION_API_KEY:
+        app.logger.info("Authenticated using extension API key")
+        # Continue without OAuth
+        pass
 
-    try:
-        id_info = id_token.verify_oauth2_token(token, Request(), GOOGLE_CLIENT_ID)
-        app.logger.info(f"Decoded token information: {id_info}")
-    except ValueError:
-        app.logger.warning("Invalid token")
-        return jsonify({"error": "Invalid token"}), 401
-    except jwt.ExpiredSignatureError:
-        app.logger.warning("Token has expired")
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        app.logger.warning("Invalid token")
-        return jsonify({"error": "Invalid token"}), 401
+    # Step 3: Unauthorized Access (No valid token or API key)
+    else:
+        app.logger.warning("Unauthorized access attempt")
+        return jsonify({"error": "Unauthorized"}), 401
 
     app.logger.info(f"Headers: {request.headers}")
     app.logger.info(f"Files: {request.files}")

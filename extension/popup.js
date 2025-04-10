@@ -61,6 +61,9 @@ function injectFollowUpWidget() {
       const company =
         document.querySelector('[data-testid="inlineHeader-companyName"]')
           ?.innerText || "Unknown Company";
+      const jobDescription =
+        document.querySelector("#jobDescriptionText")?.innerText ||
+        "Unknown Description";
 
       await fetch("http://localhost:5000/api/save-job", {
         method: "POST",
@@ -70,6 +73,7 @@ function injectFollowUpWidget() {
         body: JSON.stringify({
           title: jobTitle,
           company: company,
+          description: jobDescription,
           url: window.location.href,
         }),
       });
