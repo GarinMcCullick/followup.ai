@@ -62,16 +62,19 @@ function injectFollowUpWidget() {
         document.querySelector('[data-testid="inlineHeader-companyName"]')
           ?.innerText || "Unknown Company";
 
-      await fetch("https://your-backend.com/api/save-job", {
+      await fetch("http://localhost:5000/api/save-job", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           title: jobTitle,
-          company,
+          company: company,
           url: window.location.href,
         }),
       });
 
+      // Update UI to indicate success
       document.getElementById("followup-send").innerText = "✓ Sent!";
     });
 }

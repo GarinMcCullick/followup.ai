@@ -9,6 +9,10 @@ from resume_parser import extract_text_from_pdf, parse_resume
 from generator import generate_content
 from werkzeug.utils import secure_filename
 import jwt
+from routes import routes  # Import the Blueprint
+
+# Initialize the Flask app
+app = Flask(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -20,7 +24,12 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "default_secret_key")
-CORS(app)
+
+# Set up CORS
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://www.indeed.com"]}})
+
+# Register Blueprint
+app.register_blueprint(routes)
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 if not GOOGLE_CLIENT_ID:
