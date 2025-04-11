@@ -230,9 +230,24 @@ export default function App() {
               <tbody>
                 {jobs.map((job) => (
                   <tr key={job.id} className="job-row">
-                    <td className="job-date">{job.date}</td>
-                    <td className="job-title">{job.title}</td>
-                    <td className="job-company">{job.company}</td>
+                    <td className="job-date">
+                      <span className="tooltip-container">
+                        {job.date}
+                        <span className="tooltip-text">{job.date}</span>
+                      </span>
+                    </td>
+                    <td className="job-title">
+                      <span className="tooltip-container">
+                        {job.title}
+                        <span className="tooltip-text">{job.title}</span>
+                      </span>
+                    </td>
+                    <td className="job-company">
+                      <span className="tooltip-container">
+                        {job.company}
+                        <span className="tooltip-text">{job.company}</span>
+                      </span>
+                    </td>
                     <td className="job-link">
                       <a
                         href={job.url}
@@ -254,7 +269,6 @@ export default function App() {
                     <td className="job-send">
                       <button
                         onClick={() => {
-                          // Handle sending the job application
                           console.log("Send button clicked for job:", job);
                         }}
                         className="send-button"

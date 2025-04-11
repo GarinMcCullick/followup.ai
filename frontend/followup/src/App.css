@@ -170,11 +170,61 @@ button:disabled {
   animation: bg-animation 15s infinite alternate;
 }
 
+/* Tooltip container */
+.tooltip-container {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  overflow-y: visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  cursor: pointer;
+  vertical-align: top;
+  z-index: 1000;
+}
+
+/* Tooltip text */
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease, visibility 0s 0.3s;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 10px;
+  position: absolute;
+  bottom: calc(100% + 5px); /* Space above the tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  white-space: normal;
+  max-width: 300px;
+  word-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: none; /* Prevent blocking interactions with other elements */
+}
+
+/* Show tooltip on hover */
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.3s ease, visibility 0s;
+}
+
+/* Ensure table cell doesn't clip the tooltip */
+td {
+  position: relative; /* Make sure td is a positioned container */
+  overflow: visible !important; /* Allow overflow */
+}
+
 /* Container for the entire job list */
 .job-list-container {
   width: 90vw;
   max-width: 100%;
-  overflow-x: auto;
+  overflow: visible;
   margin: 20px 0;
 }
 
@@ -202,6 +252,8 @@ button:disabled {
 
 .job-table td {
   text-align: left; /* Align text to the left */
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
 }
 
 /* Styling individual rows */
@@ -211,11 +263,6 @@ button:disabled {
 
 .job-table .job-row:nth-child(odd) {
   background-color: #333; /* Same as table background for odd rows */
-}
-
-/* Hover effect on rows */
-.job-table .job-row:hover {
-  background-color: #444; /* Lighter hover color */
 }
 
 /* Styling links */
@@ -231,13 +278,15 @@ button:disabled {
   text-decoration: underline;
 }
 
+.job-table .job-link a:visited,
+.job-table .job-generated-preview a:visited {
+  color: #b983ff; /* Keep visited links the same color */
+}
+
 /* Specific styling for each column */
 .job-table .job-title,
 .job-table .job-company {
   max-width: 250px; /* Control column width */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .job-table .job-link,
