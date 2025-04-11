@@ -12,6 +12,7 @@ export default function App() {
   const [token, setToken] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
   const [jobPosting, setJobPosting] = useState("");
+  const [jobs, setJobs] = useState([]); // State to hold jobs data
   const [fileName, setFileName] = useState("");
   const navigate = useNavigate(); // Use useNavigate
 
@@ -49,6 +50,32 @@ export default function App() {
         const decodedToken = jwtDecode(id_token);
         setUser(decodedToken);
         navigate("/");
+
+        // Now that login is successful, fetch the jobs
+        const fetchJobs = async () => {
+          try {
+            const response = await fetch("http://localhost:5000/api/get-jobs", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+
+            if (response.ok) {
+              const jobData = await response.json();
+              // Handle the received jobs data, for example:
+              console.log("Fetched jobs:", jobData);
+              // Update your state with the job data
+              setJobs(jobData);
+            } else {
+              console.error("Failed to fetch jobs");
+            }
+          } catch (error) {
+            console.error("Error fetching jobs:", error);
+          }
+        };
+
+        fetchJobs(); // Fetch jobs after login success
       } catch (error) {
         console.error("Error during Google login callback:", error);
         alert("Login failed. Please try again.");
@@ -181,6 +208,72 @@ export default function App() {
           <pre className="follow-up whitespace-pre-wrap">{followUp}</pre>
         </div>
       )}
+      <div>
+        <h2 className="jobs-header">Applied Jobs</h2>
+        {jobs.length === 0 ? (
+          <p>No jobs available</p>
+        ) : (
+          <div className="job-list-container">
+            <table className="job-table">
+              <thead>
+                <tr>
+                  <th>Date Applied</th>
+                  <th>Title</th>
+                  <th>Company</th>
+                  <th>Job Posting</th>
+                  <th>AI FollowUp</th>
+                  <th>
+                    <button className="send-all-button">Send All</button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobs.map((job) => (
+                  <tr key={job.id} className="job-row">
+                    <td className="job-date">{job.date}</td>
+                    <td className="job-title">{job.title}</td>
+                    <td className="job-company">{job.company}</td>
+                    <td className="job-link">
+                      <a
+                        href={job.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View Job
+                      </a>
+                    </td>
+                    <td className="job-generated-preview">
+                      <a
+                        href={job.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View FollowUp
+                      </a>
+                    </td>
+                    <td className="job-send">
+                      <button
+                        onClick={() => {
+                          // Handle sending the job application
+                          console.log("Send button clicked for job:", job);
+                        }}
+                        className="send-button"
+                      >
+                        Send
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className="footer">
+        <div className="footer-text">
+          <p>© 2025 FollowUp.ai. All rights reserved.</p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -57,13 +57,16 @@ function injectFollowUpWidget() {
     .getElementById("followup-send")
     .addEventListener("click", async () => {
       const jobTitle =
-        document.querySelector("h1")?.innerText || "Unknown Title";
+        document.querySelector('[data-testid="jobsearch-JobInfoHeader-title"]')
+          ?.innerText || "Unknown Title";
       const company =
         document.querySelector('[data-testid="inlineHeader-companyName"]')
           ?.innerText || "Unknown Company";
-      const jobDescription =
-        document.querySelector("#jobDescriptionText")?.innerText ||
-        "Unknown Description";
+      const date = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
 
       await fetch("http://localhost:5000/api/save-job", {
         method: "POST",
@@ -71,9 +74,9 @@ function injectFollowUpWidget() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          date: date,
           title: jobTitle,
           company: company,
-          description: jobDescription,
           url: window.location.href,
         }),
       });

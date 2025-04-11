@@ -28,6 +28,7 @@ def generate_content(parsed_resume, job_description):
     - Make sure the email remains professional and addresses all the relevant details based on the job description and the candidate's resume.
     - Please clearly separate the cover letter and follow-up email by adding a unique delimiter between them. The delimiter is: ===END OF COVER LETTER===
     - I do not have a bachelors or masters or assciates degree in computer science or any other field. I have a high school diploma and a few certifications and experience.
+    - If you do not have anything to say about the job description, do not make anything up. Just make it short and concise.
 
     Write the email including:
     1. A concise, tailored cover letter within the body of the email.
