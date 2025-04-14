@@ -115,6 +115,46 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.loading-generation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "Arial", sans-serif;
+  font-size: 1.5rem;
+  color: #cbd0da; /* Slate-700 for sleek dark text */
+  animation: fadeIn 0.4s ease-in;
+  margin: 16px 0;
+}
+
+/* Spinner styles */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #cbd5e1; /* light gray */
+  border-top: 3px solid #3b82f6; /* blue accent */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Optional fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .response-container {
   width: 90%;
   max-width: 100%;
@@ -180,9 +220,8 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
-  cursor: pointer;
+  cursor: text;
   vertical-align: top;
-  z-index: 1000;
 }
 
 /* Tooltip text */
@@ -248,10 +287,11 @@ td {
 .job-table td {
   padding: 12px;
   border: 1px solid #555; /* Darker borders */
+  vertical-align: middle;
 }
 
 .job-table td {
-  text-align: left; /* Align text to the left */
+  text-align: center;
   overflow-x: hidden !important;
   overflow-y: visible !important;
 }
@@ -294,29 +334,79 @@ td {
   text-align: center;
 }
 
-.job-send {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.send-button,
-.send-all-button {
-  background-color: #28a745; /* Fresh green */
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
+.preview-button {
+  background: none;
   border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
+  padding: 0;
+  color: #4e9fff;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  font: inherit;
 }
 
-.send-button:hover,
-.send-all-button:hover {
-  background-color: #218838; /* Darker green for hover */
-  transform: scale(1.05);
+.preview-button:hover {
+  color: #89b0e0;
+  text-decoration: underline;
+}
+
+/* Base button styles */
+button {
+  font-family: "Arial", sans-serif;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Blue button */
+.send-all-cover-letter {
+  background-color: #3b82f6; /* Friendly blue */
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.send-all-cover-letter:hover {
+  background-color: #2563eb; /* Slightly darker blue */
+  transform: translateY(-4px); /* Hover lift effect */
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* Soft shadow */
+}
+
+/* Green button */
+.send-all-followup {
+  background-color: #10b981; /* Friendly green */
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.send-all-followup:hover {
+  background-color: #059669; /* Slightly darker green */
+  transform: translateY(-4px); /* Hover lift effect */
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); /* Soft shadow */
+}
+
+.send-followup {
+  background-color: #10b981; /* Friendly green */
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.send-followup:hover {
+  background-color: #059669; /* Slightly darker green */
+  transform: translateY(-4px); /* Hover lift effect */
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); /* Soft shadow */
+}
+
+.send-cover-letter {
+  background-color: #3b82f6; /* Friendly blue */
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.send-cover-letter:hover {
+  background-color: #2563eb; /* Slightly darker blue */
+  transform: translateY(-4px); /* Hover lift effect */
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); /* Soft shadow */
 }
 
 .footer {
@@ -475,4 +565,108 @@ td {
 .google-login-btn:focus {
   outline: none;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+/**********************************************************PreviewFollowUp.js**********************************************************/
+/* Prevent background from scrolling when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.preview-modal {
+  background-color: #1f1f1f;
+  color: #f1f1f1;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  padding: 1.5rem;
+  max-width: 900px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.preview-company {
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+.preview-job-link {
+  color: #60a5fa;
+  text-decoration: underline;
+  font-size: 0.875rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.preview-section-header {
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  color: #ffffff;
+}
+
+.preview-textarea {
+  width: 100%;
+  background-color: #2c2c2c;
+  color: #f1f1f1;
+  border: 1px solid #444;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  height: 200px; /* Increased height */
+  resize: vertical;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.preview-save-button {
+  background-color: #16a34a;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.preview-save-button:hover {
+  background-color: #15803d;
+}
+
+.preview-close-button {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.preview-close-button:hover {
+  background-color: #1d4ed8;
 }

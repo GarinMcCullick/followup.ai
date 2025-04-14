@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { jwtDecode } from "jwt-decode";
+import PreviewFollowUp from "./Components/PreviewFollowUp";
 
 export default function App() {
   const [coverLetter, setCoverLetter] = useState("");
@@ -14,6 +15,7 @@ export default function App() {
   const [jobPosting, setJobPosting] = useState("");
   const [jobs, setJobs] = useState([]); // State to hold jobs data
   const [fileName, setFileName] = useState("");
+  const [previewFollowUp, setPreviewFollowUp] = useState(null); // State to control preview
   const navigate = useNavigate(); // Use useNavigate
 
   const handleGoogleCallback = useCallback(
@@ -162,132 +164,173 @@ export default function App() {
   }
 
   return (
-    <div className="page-container text-white bg-black min-h-screen p-6">
-      <h1 className="Title text-4xl font-bold mb-2">followup.ai</h1>
-      <p className="User mb-4">Signed in as {user.name}</p>
-
-      <textarea
-        value={jobPosting}
-        onChange={(e) => setJobPosting(e.target.value)}
-        placeholder="Paste the job posting / description here..."
-        className="textarea w-full p-3 rounded mb-4 text-black"
-        rows="18"
-        maxLength={4000}
-      />
-      <label className="file-button mb-4 block text-sm">
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={handleFileChange}
-          className="file-input hidden"
+    <>
+      {previewFollowUp && (
+        <PreviewFollowUp
+          job={previewFollowUp}
+          onClose={() => setPreviewFollowUp(null)}
         />
-        <span className="cursor-pointer bg-gray-700 px-4 py-2 rounded inline-block">
-          {fileName ? `📂 ${fileName}` : "📂 Choose File"}
-        </span>
-      </label>
-
-      <button
-        onClick={handleSubmit}
-        className="generate-button"
-        disabled={loading}
-      >
-        {loading ? "Generating..." : "Generate"}
-      </button>
-
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="response-container">
-          <h2 className="cover-letter-title font-bold text-xl mt-4">
-            Cover Letter
-          </h2>
-          <pre className="cover-letter whitespace-pre-wrap">{coverLetter}</pre>
-          <h2 className="cover-letter-title font-bold text-xl mt-4">
-            Follow Up Email
-          </h2>
-          <pre className="follow-up whitespace-pre-wrap">{followUp}</pre>
-        </div>
       )}
-      <div>
-        <h2 className="jobs-header">Applied Jobs</h2>
-        {jobs.length === 0 ? (
-          <p>No jobs available</p>
-        ) : (
-          <div className="job-list-container">
-            <table className="job-table">
-              <thead>
-                <tr>
-                  <th>Date Applied</th>
-                  <th>Title</th>
-                  <th>Company</th>
-                  <th>Job Posting</th>
-                  <th>AI FollowUp</th>
-                  <th>
-                    <button className="send-all-button">Send All</button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((job) => (
-                  <tr key={job.id} className="job-row">
-                    <td className="job-date">
-                      <span className="tooltip-container">
-                        {job.date}
-                        <span className="tooltip-text">{job.date}</span>
-                      </span>
-                    </td>
-                    <td className="job-title">
-                      <span className="tooltip-container">
-                        {job.title}
-                        <span className="tooltip-text">{job.title}</span>
-                      </span>
-                    </td>
-                    <td className="job-company">
-                      <span className="tooltip-container">
-                        {job.company}
-                        <span className="tooltip-text">{job.company}</span>
-                      </span>
-                    </td>
-                    <td className="job-link">
-                      <a
-                        href={job.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View Job
-                      </a>
-                    </td>
-                    <td className="job-generated-preview">
-                      <a
-                        href={job.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View FollowUp
-                      </a>
-                    </td>
-                    <td className="job-send">
-                      <button
-                        onClick={() => {
-                          console.log("Send button clicked for job:", job);
-                        }}
-                        className="send-button"
-                      >
-                        Send
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="page-container text-white bg-black min-h-screen p-6">
+        <h1 className="Title text-4xl font-bold mb-2">followup.ai</h1>
+        <p className="User mb-4">Signed in as {user.name}</p>
+
+        <textarea
+          value={jobPosting}
+          onChange={(e) => setJobPosting(e.target.value)}
+          placeholder="Paste the job posting / description here..."
+          className="textarea w-full p-3 rounded mb-4 text-black"
+          rows="18"
+          maxLength={4000}
+        />
+        <label className="file-button mb-4 block text-sm">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileChange}
+            className="file-input hidden"
+          />
+          <span className="cursor-pointer bg-gray-700 px-4 py-2 rounded inline-block">
+            {fileName ? `📂 ${fileName}` : "📂 Choose File"}
+          </span>
+        </label>
+
+        <button
+          onClick={handleSubmit}
+          className="generate-button"
+          disabled={loading}
+        >
+          {loading ? "Generating..." : "Generate"}
+        </button>
+
+        {/* Show loading only while generating */}
+        {loading && (
+          <div className="loading-generation">
+            <div className="spinner"></div>
+            <span>Generating content...</span>
           </div>
         )}
-      </div>
-      <div className="footer">
-        <div className="footer-text">
-          <p>© 2025 FollowUp.ai. All rights reserved.</p>
+
+        {/* Show results only after content has been generated */}
+        {!loading && coverLetter && followUp && (
+          <div className="response-container mt-6">
+            <h2 className="cover-letter-title font-bold text-xl mt-4">
+              Cover Letter
+            </h2>
+            <pre className="cover-letter whitespace-pre-wrap">
+              {coverLetter}
+            </pre>
+
+            <h2 className="cover-letter-title font-bold text-xl mt-4">
+              Follow Up Email
+            </h2>
+            <pre className="follow-up whitespace-pre-wrap">{followUp}</pre>
+          </div>
+        )}
+
+        <div>
+          <h2 className="jobs-header">Applied Jobs</h2>
+          {jobs.length === 0 ? (
+            <p>No jobs available</p>
+          ) : (
+            <div className="job-list-container">
+              <table className="job-table">
+                <thead>
+                  <tr>
+                    <th>Date Applied</th>
+                    <th>Title</th>
+                    <th>Company</th>
+                    <th>Job Posting</th>
+                    <th>AI FollowUp</th>
+                    <th>
+                      <label>Cover Letters</label>
+                      <button className="send-all-cover-letter">
+                        Send All
+                      </button>
+                    </th>
+                    <th>
+                      <label>FollowUp Emails</label>
+                      <button className="send-all-followup">Send All</button>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((job) => (
+                    <tr key={job.id} className="job-row">
+                      <td className="job-date">
+                        <span className="tooltip-container">
+                          {job.date}
+                          <span className="tooltip-text">{job.date}</span>
+                        </span>
+                      </td>
+                      <td className="job-title">
+                        <span className="tooltip-container">
+                          {job.title}
+                          <span className="tooltip-text">{job.title}</span>
+                        </span>
+                      </td>
+                      <td className="job-company">
+                        <span className="tooltip-container">
+                          {job.company}
+                          <span className="tooltip-text">{job.company}</span>
+                        </span>
+                      </td>
+                      <td className="job-link">
+                        <a
+                          href={job.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Job
+                        </a>
+                      </td>
+                      <td className="job-generated-preview">
+                        <button
+                          onClick={() => setPreviewFollowUp(job)}
+                          className="preview-button"
+                        >
+                          View FollowUp
+                        </button>
+                      </td>
+                      <td className="job-send">
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "Send cover letter button clicked for job:",
+                              job
+                            );
+                          }}
+                          className="send-cover-letter"
+                        >
+                          Send
+                        </button>
+                      </td>
+                      <td className="job-send">
+                        <button
+                          onClick={() => {
+                            console.log(
+                              "Send followup button clicked for job:",
+                              job
+                            );
+                          }}
+                          className="send-followup"
+                        >
+                          Send
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        <div className="footer">
+          <div className="footer-text">
+            <p>© 2025 FollowUp.ai. All rights reserved.</p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
