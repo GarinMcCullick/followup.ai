@@ -58,10 +58,21 @@ function injectFollowUpWidget() {
     .addEventListener("click", async () => {
       const jobTitle =
         document.querySelector('[data-testid="jobsearch-JobInfoHeader-title"]')
-          ?.innerText || "Unknown Title";
+          ?.innerText ||
+        document.querySelector('[data-testid="simpler-jobTitle"]')?.innerText ||
+        "Unknown Title";
+
+      const jobDescription =
+        document.querySelector("#jobDescriptionText")?.innerText ||
+        "No description available.";
+
       const company =
         document.querySelector('[data-testid="inlineHeader-companyName"]')
-          ?.innerText || "Unknown Company";
+          ?.innerText ||
+        document.querySelector(".jobsearch-JobInfoHeader-companyNameLink")
+          ?.innerText ||
+        "Unknown Company";
+
       const date = new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
@@ -72,11 +83,13 @@ function injectFollowUpWidget() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Extension-API-Key": "true",
         },
         body: JSON.stringify({
           date: date,
           title: jobTitle,
           company: company,
+          jobDescription: jobDescription,
           url: window.location.href,
         }),
       });
