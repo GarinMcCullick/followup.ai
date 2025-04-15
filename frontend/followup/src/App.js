@@ -9,6 +9,7 @@ export default function App() {
   const [coverLetter, setCoverLetter] = useState("");
   const [followUp, setFollowUp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [buttonLoadingState, setButtonLoadingState] = useState({});
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
@@ -94,6 +95,30 @@ export default function App() {
       handleGoogleCallback(code);
     }
   }, [handleGoogleCallback]); // Now it's safe to use handleGoogleCallback here
+
+  const handleViewFollowUp = async (jobId) => {
+    // Set loading for the specific job
+    setButtonLoadingState((prevState) => ({ ...prevState, [jobId]: true }));
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/get-job`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: jobId }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch job");
+
+      const freshJob = await response.json();
+      setPreviewFollowUp(freshJob);
+    } catch (err) {
+      console.error("Error fetching updated job:", err);
+      alert("Failed to load job details.");
+    } finally {
+      // Set loading to false after fetch completes for this specific job
+      setButtonLoadingState((prevState) => ({ ...prevState, [jobId]: false }));
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -286,10 +311,33 @@ export default function App() {
                       </td>
                       <td className="job-generated-preview">
                         <button
-                          onClick={() => setPreviewFollowUp(job)}
+                          onClick={async () => {
+                            try {
+                              await handleViewFollowUp(job.id); // Ensure this is awaited
+                            } catch (error) {
+                              console.error(
+                                "Error in handleViewFollowUp:",
+                                error
+                              );
+                              alert("Failed to load job details.");
+                            }
+                          }}
                           className="preview-button"
+                          style={{
+                            cursor: buttonLoadingState[job.id]
+                              ? "wait"
+                              : "pointer",
+                          }}
+                          disabled={buttonLoadingState[job.id]}
                         >
-                          View FollowUp
+                          {buttonLoadingState[job.id] ? (
+                            <div className="loading-generation">
+                              <div className="spinner"></div>
+                              <span>Generating content...</span>
+                            </div>
+                          ) : (
+                            "View FollowUp"
+                          )}
                         </button>
                       </td>
                       <td className="job-send">

@@ -5,6 +5,8 @@ const PreviewFollowUp = ({ job, onClose }) => {
   const [coverLetter, setCoverLetter] = useState(job.cover_letter);
   const [followUp, setFollowUp] = useState(job.follow_up);
   const [isEdited, setIsEdited] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     document.body.classList.add("modal-open");
@@ -20,23 +22,30 @@ const PreviewFollowUp = ({ job, onClose }) => {
   }, [job]);
 
   const handleSave = async () => {
+    setTimeout(() => setSaveMessage(""), 11000);
+    setIsSaving(true);
     try {
-      const response = await fetch(`/api/edit-generation`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: job.id,
-          cover_letter: coverLetter,
-          follow_up: followUp,
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:5000/api/edit-generation`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: job.id,
+            cover_letter: coverLetter,
+            follow_up: followUp,
+          }),
+        }
+      );
 
       if (!response.ok) throw new Error("Update failed");
-      alert("Changes saved successfully!");
+      setSaveMessage("Changes saved successfully!");
       setIsEdited(false);
     } catch (err) {
       console.error(err);
       alert("Something went wrong while saving.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -82,11 +91,27 @@ const PreviewFollowUp = ({ job, onClose }) => {
             setIsEdited(true);
           }}
         />
+        {saveMessage && (
+          <p
+            style={{
+              fontSize: "1.3rem",
+              color: "#15803d",
+              marginTop: "10px",
+              fontWeight: "500",
+            }}
+          >
+            {saveMessage}
+          </p>
+        )}
 
         <div className="preview-actions">
           {isEdited && (
-            <button onClick={handleSave} className="preview-save-button">
-              Save
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="preview-save-button"
+            >
+              {isSaving ? "Saving..." : "Save"}
             </button>
           )}
           <button onClick={onClose} className="preview-close-button">

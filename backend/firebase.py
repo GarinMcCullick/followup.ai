@@ -35,3 +35,11 @@ def get_document(doc_id):
         return doc.to_dict()
     else:
         return None
+
+def update_document(doc_id, data):
+    doc_ref = db.collection("jobs").document(doc_id)
+    doc_ref.update(data)
+    if doc.exists:
+        return doc.to_dict()
+    else:
+        return None

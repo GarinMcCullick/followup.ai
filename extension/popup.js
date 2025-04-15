@@ -63,6 +63,8 @@ function injectFollowUpWidget() {
         "Unknown Title";
 
       const jobDescription =
+        document.querySelector(".jobsearch-JobComponent-description")
+          ?.innerText ||
         document.querySelector("#jobDescriptionText")?.innerText ||
         "No description available.";
 

@@ -213,15 +213,8 @@ button:disabled {
 /* Tooltip container */
 .tooltip-container {
   display: inline-block;
-  max-width: 100%;
-  overflow-x: hidden !important;
-  overflow-y: hidden !important;
-  overflow-y: visible;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   position: relative;
   cursor: text;
-  vertical-align: top;
 }
 
 /* Tooltip text */
@@ -239,18 +232,9 @@ button:disabled {
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  white-space: normal;
   max-width: 300px;
   word-wrap: break-word;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  pointer-events: none; /* Prevent blocking interactions with other elements */
-}
-
-/* Show tooltip on hover */
-.tooltip-container:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.3s ease, visibility 0s;
 }
 
 /* Ensure table cell doesn't clip the tooltip */
@@ -294,6 +278,10 @@ td {
   text-align: center;
   overflow-x: hidden !important;
   overflow-y: visible !important;
+}
+
+.job-send {
+  width: 10%;
 }
 
 /* Styling individual rows */
@@ -588,11 +576,13 @@ body.modal-open {
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
   padding: 1.5rem;
-  max-width: 900px;
-  width: 90%;
-  max-height: 90vh;
+  width: 80vw;
+  height: auto;
+  max-width: 95vw;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 
 .preview-title {
@@ -619,20 +609,23 @@ body.modal-open {
   margin-top: 1rem;
   margin-bottom: 0.25rem;
   color: #ffffff;
+  font-size: 1.4rem;
 }
 
 .preview-textarea {
-  width: 100%;
   background-color: #2c2c2c;
   color: #f1f1f1;
   border: 1px solid #444;
   border-radius: 0.375rem;
   padding: 0.75rem;
-  height: 200px; /* Increased height */
+  field-sizing: content;
+  width: 98%;
+  height: auto;
   resize: vertical;
   font-family: inherit;
   font-size: 1rem;
   margin-bottom: 1rem;
+  margin-top: 0.5rem;
 }
 
 .preview-actions {

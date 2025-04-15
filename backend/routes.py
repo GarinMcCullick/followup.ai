@@ -9,6 +9,8 @@ import logging
 from werkzeug.utils import secure_filename
 from resume_parser import extract_text_from_pdf, parse_resume
 from generator import generate_content
+from firebase_admin import firestore
+
 
 routes = Blueprint('routes', __name__)
 CORS(routes, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://www.indeed.com"]}})
@@ -39,7 +41,7 @@ def save_job():
         url = job_data.get('url')
         date = job_data.get('date')
         job_description = job_data.get('jobDescription')
-
+        print(f"Job data received: {job_data}")
         missing_fields = [field for field in ['title', 'company', 'url', 'jobDescription'] if not job_data.get(field)]
         if missing_fields:
             current_app.logger.warning(f"Missing required fields: {missing_fields}")
@@ -119,6 +121,26 @@ def get_recent_jobs():
     except Exception as e:
         print(f"Error occurred while retrieving jobs: {e}")
         return jsonify({"message": "Error retrieving jobs", "details": str(e)}), 500
+
+@routes.route("/api/get-job", methods=["POST"])
+def get_job():
+    data = request.get_json()
+    doc_id = data.get("id")
+
+    if not doc_id:
+        return jsonify({"error": "Document ID is required"}), 400
+
+    try:
+        doc_ref = db.collection("jobs").document(doc_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            job_data = doc.to_dict()
+            job_data["id"] = doc.id  # Include the ID back in the response
+            return jsonify(job_data), 200
+        else:
+            return jsonify({"error": "Job not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @routes.route("/api/generate", methods=["POST"])
 def generate():
@@ -210,6 +232,42 @@ def generate():
         "cover_letter": cover_letter,
         "follow_up": follow_up
     })
+
+@routes.route("/api/edit-generation", methods=["POST", "OPTIONS"])
+def edit_generation():
+    if request.method == 'OPTIONS':
+        print("[OPTIONS] Preflight request received")
+        response = jsonify({'message': 'CORS preflight handled'})
+        response.status_code = 200
+        return response
+
+    try:
+        data = request.get_json()
+        print("[POST] Received data:", data)
+
+        doc_id = data.get("id")
+        cover_letter = data.get("cover_letter")
+        follow_up = data.get("follow_up")
+
+        if not doc_id:
+            print("[ERROR] Missing document ID")
+            return jsonify({"error": "Document ID is required"}), 400
+
+        doc_ref = db.collection("jobs").document(doc_id)
+        print(f"[INFO] Updating doc ID: {doc_id}")
+
+        doc_ref.update({
+            "cover_letter": cover_letter,
+            "follow_up": follow_up,
+            "updated_at": firestore.SERVER_TIMESTAMP
+        })
+
+        print("[SUCCESS] Document updated")
+        return jsonify({"success": True}), 200
+
+    except Exception as e:
+        print("[ERROR] Exception occurred:", str(e))
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
