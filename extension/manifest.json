@@ -5,11 +5,19 @@
   "description": "FollowUp's UI for our webpage scraper",
   "permissions": ["activeTab"],
   "icons": {
-    "16": "icon.ico",
-    "48": "icon.ico",
-    "128": "icon.ico"
+    "16": "writing.png",
+    "48": "writing.png",
+    "128": "writing.png"
   },
   "host_permissions": ["https://*.linkedin.com/*", "https://*.indeed.com/*"],
+  "action": {
+    "default_popup": "popup.js",
+    "default_icon": {
+      "16": "writing.png",
+      "48": "writing.png",
+      "128": "writing.png"
+    }
+  },
   "content_scripts": [
     {
       "matches": [

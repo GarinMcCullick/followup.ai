@@ -582,7 +582,8 @@ body.modal-open {
   max-height: 95vh;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .preview-title {
