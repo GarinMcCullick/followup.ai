@@ -1,69 +1,111 @@
 #followup-widget {
-  font-size: 14px;
+  font-size: 18px;
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 10px;
+  right: 10px;
   background: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   z-index: 999999;
-  font-family: sans-serif;
-  max-width: 10vw; /* Limit width on large screens */
-  width: 100%; /* Make widget take up full width on small screens */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 200px;
+  width: 90%;
   box-sizing: border-box;
-  cursor: grab; /* Add grab cursor for draggable */
-  height: 120px; /* Set a fixed height */
+  cursor: grab;
+  height: 180px;
   display: flex;
-  flex-flow: column nowrap;
-  justify-content: end;
-  user-select: none; /* Prevent text selection */
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  flex-direction: column;
+  justify-content: space-evenly;
+  user-select: none;
 }
 
 #followup-inner {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  justify-content: space-evenly;
+  align-items: stretch;
   height: 100%;
-  padding-top: 30%;
+  gap: 10px; /* Even spacing between children */
+  margin: 0;
+  padding: 0;
+}
+
+#followup-email {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d1d1;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+#followup-email:focus {
+  border-color: #007bff;
 }
 
 #followup-send {
-  margin-top: 8px;
-  padding: 6px 12px;
+  padding: 10px;
   background: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  width: 100%; /* Make button full width on smaller screens */
+  width: 100%;
   box-sizing: border-box;
+  font-weight: 600;
+  transition: background 0.2s ease;
 }
 
 #followup-send:hover {
-  background: #0056b3; /* Darker blue on hover */
+  background: #0056b3;
+}
+
+.loader {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .responsive-icon {
-  width: 10px;
-  height: 10px;
-  vertical-align: middle; /* Align icon with text */
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
+  margin-left: 4px;
 }
 
 @media (max-width: 600px) {
   #followup-widget {
     bottom: 15px;
     right: 15px;
-    padding: 10px;
+    padding: 14px;
+    width: 95%;
+    max-width: none;
   }
 
   #followup-send {
-    margin-top: 6px;
-    padding: 5px 10px;
+    padding: 8px;
+  }
+
+  #followup-email {
+    padding: 8px;
   }
 }

@@ -41,6 +41,7 @@ def save_job():
         url = job_data.get('url')
         date = job_data.get('date')
         job_description = job_data.get('jobDescription')
+        contact_email = job_data.get('contactEmail')
         print(f"Job data received: {job_data}")
         missing_fields = [field for field in ['title', 'company', 'url', 'jobDescription'] if not job_data.get(field)]
         if missing_fields:
@@ -81,7 +82,8 @@ def save_job():
             "company": company,
             "url": url,
             "cover_letter": cover_letter,
-            "follow_up": follow_up
+            "follow_up": follow_up,
+            "contact_email": contact_email,
         }
 
         job_id = add_document(job_dict)
