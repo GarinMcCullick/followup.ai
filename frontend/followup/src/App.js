@@ -43,6 +43,8 @@ export default function App() {
         console.log("Response from token exchange:", res.data);
 
         const { id_token } = res.data;
+        const { access_token } = res.data; // Extract access token from response
+        localStorage.setItem("gmailAccessToken", access_token);
 
         if (!id_token) {
           throw new Error("ID token not found in response");
@@ -157,17 +159,57 @@ export default function App() {
     setLoading(false);
   };
 
+  async function sendEmail(job, type) {
+    try {
+      const to = job.contact_email;
+      const subject =
+        type === "cover-letter"
+          ? `Application for ${job.title}`
+          : `Follow-Up on ${job.title}`;
+      const body = type === "cover-letter" ? job.cover_letter : job.follow_up;
+
+      const accessToken = localStorage.getItem("gmailAccessToken"); // ✅ Get token
+
+      const response = await fetch("http://localhost:5000/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // ✅ Send token
+        },
+        body: JSON.stringify({
+          to,
+          subject,
+          body,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Unknown error");
+      }
+
+      console.log(`${type} email sent successfully to ${to}`);
+    } catch (err) {
+      console.error(`Error sending ${type} email:`, err.message);
+    }
+  }
+
   const handleGoogleLogin = () => {
     const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-    const redirectUri = "http://localhost:3000/auth/callback"; // Your redirect URL
-    const scope = "openid profile email"; // Requesting necessary scopes
-    const responseType = "code"; // Use 'code' for Authorization Code Flow
-    const accessType = "offline"; // To get refresh token, if needed
+    const redirectUri = "http://localhost:3000/auth/callback";
+    const scope = [
+      "openid",
+      "profile",
+      "email",
+      "https://www.googleapis.com/auth/gmail.send", // ✨ Add this!
+    ].join(" ");
+    const responseType = "code";
+    const accessType = "offline";
 
-    // Construct the Google OAuth URL
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=${accessType}`;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(
+      scope
+    )}&access_type=${accessType}&prompt=consent`;
 
-    // Redirect the user to Google for authentication
     window.location.href = authUrl;
   };
 
@@ -342,12 +384,7 @@ export default function App() {
                       </td>
                       <td className="job-send">
                         <button
-                          onClick={() => {
-                            console.log(
-                              "Send cover letter button clicked for job:",
-                              job
-                            );
-                          }}
+                          onClick={() => sendEmail(job, "cover-letter")}
                           className="send-cover-letter"
                         >
                           Send
@@ -355,12 +392,7 @@ export default function App() {
                       </td>
                       <td className="job-send">
                         <button
-                          onClick={() => {
-                            console.log(
-                              "Send followup button clicked for job:",
-                              job
-                            );
-                          }}
+                          onClick={() => sendEmail(job, "followup")}
                           className="send-followup"
                         >
                           Send

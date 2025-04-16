@@ -10,13 +10,18 @@ from werkzeug.utils import secure_filename
 from resume_parser import extract_text_from_pdf, parse_resume
 from generator import generate_content
 from firebase_admin import firestore
-
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import base64
+from google.auth.transport.requests import Request
 
 routes = Blueprint('routes', __name__)
 CORS(routes, resources={r"/api/*": {"origins": ["http://localhost:3000", "https://www.indeed.com"]}})
 
 import requests
 from flask import current_app
+
+GOOGLE_API_URL = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
 
 @routes.route('/api/save-job', methods=['POST', 'OPTIONS'])
 def save_job():
@@ -270,6 +275,63 @@ def edit_generation():
     except Exception as e:
         print("[ERROR] Exception occurred:", str(e))
         return jsonify({"error": str(e)}), 500
+
+@routes.route('/api/send-email', methods=['POST'])
+def send_email():
+    try:
+        data = request.get_json()
+        to = data.get('to')
+        subject = data.get('subject')
+        body = data.get('body')
+
+        if not to or not subject or not body:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Get the access token from the Authorization header
+        access_token = request.headers.get("Authorization").split("Bearer ")[-1]
+        if not access_token:
+            return jsonify({"error": "Access token is missing"}), 400
+
+        # Build the email MIME message
+        message = MIMEMultipart()
+        message["to"] = to
+        message["subject"] = subject
+        msg = MIMEText(body)
+        message.attach(msg)
+
+        raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+
+        # Log the raw message and access token for debugging
+        logging.info(f"Access Token: {access_token}")
+        logging.info(f"Raw message: {raw_message}")
+
+        # Send the email via Gmail API
+        response = send_message(access_token, raw_message)
+
+        if response.status_code != 200:
+            logging.error(f"Failed to send email: {response.status_code} - {response.text}")
+            return jsonify({"error": "Failed to send email", "details": response.json()}), 400
+
+        return jsonify({"message": "Email sent successfully!"}), 200
+
+    except Exception as e:
+        logging.error(f"Error sending email: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+def send_message(access_token, raw_message):
+    """Send email using Gmail API"""
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "raw": raw_message,
+    }
+
+    response = requests.post(GOOGLE_API_URL, headers=headers, json=payload)
+    return response
 
 
 if __name__ == "__main__":
