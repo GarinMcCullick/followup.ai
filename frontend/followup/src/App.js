@@ -162,25 +162,30 @@ export default function App() {
   async function sendEmail(job, type) {
     try {
       const to = job.contact_email;
-      const subject =
-        type === "cover-letter"
-          ? `Application for ${job.title}`
-          : `Follow-Up on ${job.title}`;
-      const body = type === "cover-letter" ? job.cover_letter : job.follow_up;
+      let subject;
+      let body;
 
-      const accessToken = localStorage.getItem("gmailAccessToken"); // ✅ Get token
+      if (type === "cover_letter") {
+        body = job.cover_letter;
+        subject = `Application for ${job.title}`;
+      } else if (type === "follow_up") {
+        body = job.follow_up;
+        subject = `Follow up for ${job.title}`;
+      } else {
+        throw new Error(
+          "sendEmail requires a valid type: 'cover_letter' or 'follow_up'"
+        );
+      }
+
+      const accessToken = localStorage.getItem("gmailAccessToken");
 
       const response = await fetch("http://localhost:5000/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`, // ✅ Send token
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          to,
-          subject,
-          body,
-        }),
+        body: JSON.stringify({ to, subject, body }),
       });
 
       if (!response.ok) {
@@ -188,9 +193,12 @@ export default function App() {
         throw new Error(errorData.error || "Unknown error");
       }
 
-      console.log(`${type} email sent successfully to ${to}`);
+      console.log(`Cover letter sent successfully to ${to}`);
     } catch (err) {
-      console.error(`Error sending ${type} email:`, err.message);
+      console.error(
+        `Error sending cover letter to ${job.contact_email}:`,
+        err.message
+      );
     }
   }
 
@@ -311,13 +319,51 @@ export default function App() {
                     <th>AI FollowUp</th>
                     <th>
                       <label>Cover Letters</label>
-                      <button className="send-all-cover-letter">
+                      <button
+                        className="send-all-cover-letter"
+                        onClick={async () => {
+                          const accessToken =
+                            localStorage.getItem("gmailAccessToken");
+                          if (!accessToken) {
+                            console.error("No Gmail access token found.");
+                            return;
+                          }
+
+                          for (const job of jobs) {
+                            if (job.cover_letter && job.contact_email) {
+                              await sendEmail(job, "cover_letter");
+                            }
+                          }
+
+                          console.log("All cover letters sent.");
+                        }}
+                      >
                         Send All
                       </button>
                     </th>
                     <th>
                       <label>FollowUp Emails</label>
-                      <button className="send-all-followup">Send All</button>
+                      <button
+                        className="send-all-followup"
+                        onClick={async () => {
+                          const accessToken =
+                            localStorage.getItem("gmailAccessToken");
+                          if (!accessToken) {
+                            console.error("No Gmail access token found.");
+                            return;
+                          }
+
+                          for (const job of jobs) {
+                            if (job.follow_up && job.contact_email) {
+                              await sendEmail(job, "follow_up");
+                            }
+                          }
+
+                          console.log("All followup emails sent.");
+                        }}
+                      >
+                        Send All
+                      </button>
                     </th>
                   </tr>
                 </thead>
@@ -384,7 +430,7 @@ export default function App() {
                       </td>
                       <td className="job-send">
                         <button
-                          onClick={() => sendEmail(job, "cover-letter")}
+                          onClick={() => sendEmail(job, "cover_letter")}
                           className="send-cover-letter"
                         >
                           Send
@@ -392,7 +438,7 @@ export default function App() {
                       </td>
                       <td className="job-send">
                         <button
-                          onClick={() => sendEmail(job, "followup")}
+                          onClick={() => sendEmail(job, "follow_up")}
                           className="send-followup"
                         >
                           Send
