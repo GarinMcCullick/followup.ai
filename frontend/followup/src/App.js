@@ -18,6 +18,10 @@ export default function App() {
   const [fileName, setFileName] = useState("");
   const [previewFollowUp, setPreviewFollowUp] = useState(null); // State to control preview
   const navigate = useNavigate(); // Use useNavigate
+  const [sendAllLoading, setSendAllLoading] = useState({
+    coverLetters: false,
+    followUps: false,
+  });
 
   const handleGoogleCallback = useCallback(
     async (code) => {
@@ -161,20 +165,13 @@ export default function App() {
 
   async function sendEmail(job, type) {
     try {
-      const to = job.contact_email;
-      let subject;
-      let body;
+      // Set loading state for the specific job
+      setButtonLoadingState((prevState) => ({ ...prevState, [job.id]: true }));
 
-      if (type === "cover_letter") {
-        body = job.cover_letter;
-        subject = `Application for ${job.title}`;
-      } else if (type === "follow_up") {
-        body = job.follow_up;
-        subject = `Follow up for ${job.title}`;
-      } else {
-        throw new Error(
-          "sendEmail requires a valid type: 'cover_letter' or 'follow_up'"
-        );
+      const { to, id, subject, body } = job;
+
+      if (!to || !id || !type) {
+        throw new Error("Missing required fields: 'to', 'id', or 'type'");
       }
 
       const accessToken = localStorage.getItem("gmailAccessToken");
@@ -185,7 +182,7 @@ export default function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ to, subject, body }),
+        body: JSON.stringify({ to, subject, body, id, email_type: type }),
       });
 
       if (!response.ok) {
@@ -193,12 +190,31 @@ export default function App() {
         throw new Error(errorData.error || "Unknown error");
       }
 
-      console.log(`Cover letter sent successfully to ${to}`);
-    } catch (err) {
-      console.error(
-        `Error sending cover letter to ${job.contact_email}:`,
-        err.message
+      console.log(`Email sent successfully for type: ${type}`);
+
+      // Update the job's status in the UI
+      setJobs((prevJobs) =>
+        prevJobs.map((j) =>
+          j.id === job.id
+            ? {
+                ...j,
+                cover_letter_sent:
+                  type === "send_all_cover_letters" || type === "cover_letter"
+                    ? true
+                    : j.cover_letter_sent,
+                follow_up_sent:
+                  type === "send_all_follow_ups" || type === "follow_up"
+                    ? true
+                    : j.follow_up_sent,
+              }
+            : j
+        )
       );
+    } catch (err) {
+      console.error(`Error sending email for type ${type}:`, err.message);
+    } finally {
+      // Reset loading state for the specific job
+      setButtonLoadingState((prevState) => ({ ...prevState, [job.id]: false }));
     }
   }
 
@@ -249,7 +265,6 @@ export default function App() {
       <div className="page-container text-white bg-black min-h-screen p-6">
         <h1 className="Title text-4xl font-bold mb-2">followup.ai</h1>
         <p className="User mb-4">Signed in as {user.name}</p>
-
         <textarea
           value={jobPosting}
           onChange={(e) => setJobPosting(e.target.value)}
@@ -269,7 +284,6 @@ export default function App() {
             {fileName ? `📂 ${fileName}` : "📂 Choose File"}
           </span>
         </label>
-
         <button
           onClick={handleSubmit}
           className="generate-button"
@@ -277,7 +291,6 @@ export default function App() {
         >
           {loading ? "Generating..." : "Generate"}
         </button>
-
         {/* Show loading only while generating */}
         {loading && (
           <div className="loading-generation">
@@ -285,7 +298,6 @@ export default function App() {
             <span>Generating content...</span>
           </div>
         )}
-
         {/* Show results only after content has been generated */}
         {!loading && coverLetter && followUp && (
           <div className="response-container mt-6">
@@ -302,7 +314,6 @@ export default function App() {
             <pre className="follow-up whitespace-pre-wrap">{followUp}</pre>
           </div>
         )}
-
         <div>
           <h2 className="jobs-header">Applied Jobs</h2>
           {jobs.length === 0 ? (
@@ -322,23 +333,62 @@ export default function App() {
                       <button
                         className="send-all-cover-letter"
                         onClick={async () => {
+                          setSendAllLoading((prevState) => ({
+                            ...prevState,
+                            coverLetters: true,
+                          }));
                           const accessToken =
                             localStorage.getItem("gmailAccessToken");
                           if (!accessToken) {
+                            setSendAllLoading((prevState) => ({
+                              ...prevState,
+                              coverLetters: false,
+                            }));
                             console.error("No Gmail access token found.");
                             return;
                           }
 
-                          for (const job of jobs) {
+                          // Filter jobs to only include those that haven't sent cover letters
+                          const unsentJobs = jobs.filter(
+                            (job) => !job.cover_letter_sent
+                          );
+
+                          for (const job of unsentJobs) {
                             if (job.cover_letter && job.contact_email) {
-                              await sendEmail(job, "cover_letter");
+                              await sendEmail(
+                                {
+                                  to: job.contact_email, // Explicitly pass the recipient's email
+                                  id: job.id, // Firestore document ID
+                                  subject: `Application for ${job.title}`, // Email subject
+                                  body: job.cover_letter, // Email body
+                                },
+                                "send_all_cover_letters"
+                              );
                             }
                           }
 
-                          console.log("All cover letters sent.");
+                          console.log("All unsent cover letters sent.");
+
+                          // Update the state to mark cover letters as sent
+                          setJobs((prevJobs) =>
+                            prevJobs.map((job) =>
+                              !job.cover_letter_sent
+                                ? { ...job, cover_letter_sent: true }
+                                : job
+                            )
+                          );
+                          setSendAllLoading((prevState) => ({
+                            ...prevState,
+                            coverLetters: false,
+                          }));
                         }}
+                        disabled={sendAllLoading.coverLetters}
                       >
-                        Send All
+                        {sendAllLoading.coverLetters ? (
+                          <span className="loader"></span>
+                        ) : (
+                          "Send All"
+                        )}
                       </button>
                     </th>
                     <th>
@@ -346,23 +396,61 @@ export default function App() {
                       <button
                         className="send-all-followup"
                         onClick={async () => {
+                          setSendAllLoading((prevState) => ({
+                            ...prevState,
+                            followUps: true,
+                          }));
                           const accessToken =
                             localStorage.getItem("gmailAccessToken");
                           if (!accessToken) {
+                            setSendAllLoading((prevState) => ({
+                              ...prevState,
+                              followUps: false,
+                            }));
                             console.error("No Gmail access token found.");
                             return;
                           }
 
-                          for (const job of jobs) {
+                          // Filter jobs to only include those that haven't sent follow-ups
+                          const unsentJobs = jobs.filter(
+                            (job) => !job.follow_up_sent
+                          );
+
+                          for (const job of unsentJobs) {
                             if (job.follow_up && job.contact_email) {
-                              await sendEmail(job, "follow_up");
+                              await sendEmail(
+                                {
+                                  to: job.contact_email, // Explicitly pass the recipient's email
+                                  id: job.id, // Firestore document ID
+                                  subject: `Follow up for ${job.title}`, // Email subject
+                                  body: job.follow_up, // Email body
+                                },
+                                "send_all_follow_ups"
+                              );
                             }
                           }
 
-                          console.log("All followup emails sent.");
+                          console.log("All unsent follow-up emails sent.");
+
+                          // Update the state to mark follow-ups as sent
+                          setJobs((prevJobs) =>
+                            prevJobs.map((job) =>
+                              !job.follow_up_sent
+                                ? { ...job, follow_up_sent: true }
+                                : job
+                            )
+                          );
+                          setSendAllLoading((prevState) => ({
+                            ...prevState,
+                            followUps: false,
+                          }));
                         }}
                       >
-                        Send All
+                        {sendAllLoading.followUps ? (
+                          <span className="loader"></span>
+                        ) : (
+                          "Send All"
+                        )}
                       </button>
                     </th>
                   </tr>
@@ -370,24 +458,9 @@ export default function App() {
                 <tbody>
                   {jobs.map((job) => (
                     <tr key={job.id} className="job-row">
-                      <td className="job-date">
-                        <span className="tooltip-container">
-                          {job.date}
-                          <span className="tooltip-text">{job.date}</span>
-                        </span>
-                      </td>
-                      <td className="job-title">
-                        <span className="tooltip-container">
-                          {job.title}
-                          <span className="tooltip-text">{job.title}</span>
-                        </span>
-                      </td>
-                      <td className="job-company">
-                        <span className="tooltip-container">
-                          {job.company}
-                          <span className="tooltip-text">{job.company}</span>
-                        </span>
-                      </td>
+                      <td className="job-date">{job.date}</td>
+                      <td className="job-title">{job.title}</td>
+                      <td className="job-company">{job.company}</td>
                       <td className="job-link">
                         <a
                           href={job.url}
@@ -401,7 +474,7 @@ export default function App() {
                         <button
                           onClick={async () => {
                             try {
-                              await handleViewFollowUp(job.id); // Ensure this is awaited
+                              await handleViewFollowUp(job.id);
                             } catch (error) {
                               console.error(
                                 "Error in handleViewFollowUp:",
@@ -411,38 +484,63 @@ export default function App() {
                             }
                           }}
                           className="preview-button"
-                          style={{
-                            cursor: buttonLoadingState[job.id]
-                              ? "wait"
-                              : "pointer",
-                          }}
-                          disabled={buttonLoadingState[job.id]}
                         >
-                          {buttonLoadingState[job.id] ? (
-                            <div className="loading-generation">
-                              <div className="spinner"></div>
-                              <span>Generating content...</span>
-                            </div>
-                          ) : (
-                            "View FollowUp"
-                          )}
+                          View FollowUp
                         </button>
                       </td>
                       <td className="job-send">
-                        <button
-                          onClick={() => sendEmail(job, "cover_letter")}
-                          className="send-cover-letter"
-                        >
-                          Send
-                        </button>
+                        {job.cover_letter_sent ? (
+                          <span className="sent-text">Sent</span>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              sendEmail(
+                                {
+                                  to: job.contact_email, // Explicitly pass the recipient's email
+                                  id: job.id, // Firestore document ID
+                                  subject: `Application for ${job.title}`, // Email subject
+                                  body: job.cover_letter, // Email body
+                                },
+                                "cover_letter"
+                              )
+                            }
+                            className="send-cover-letter"
+                            disabled={buttonLoadingState[job.id]} // Disable button while loading
+                          >
+                            {buttonLoadingState[job.id] ? (
+                              <span className="loader"></span> // Show loader while loading
+                            ) : (
+                              "Send"
+                            )}
+                          </button>
+                        )}
                       </td>
                       <td className="job-send">
-                        <button
-                          onClick={() => sendEmail(job, "follow_up")}
-                          className="send-followup"
-                        >
-                          Send
-                        </button>
+                        {job.follow_up_sent ? (
+                          <span className="sent-text">Sent</span>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              sendEmail(
+                                {
+                                  to: job.contact_email, // Explicitly pass the recipient's email
+                                  id: job.id, // Firestore document ID
+                                  subject: `Follow up for ${job.title}`, // Email subject
+                                  body: job.follow_up, // Email body
+                                },
+                                "follow_up"
+                              )
+                            }
+                            className="send-followup"
+                            disabled={buttonLoadingState[job.id]} // Disable button while loading
+                          >
+                            {buttonLoadingState[job.id] ? (
+                              <span className="loader"></span> // Show loader while loading
+                            ) : (
+                              "Send"
+                            )}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -451,6 +549,7 @@ export default function App() {
             </div>
           )}
         </div>
+
         <div className="footer">
           <div className="footer-text">
             <p>© 2025 FollowUp.ai. All rights reserved.</p>

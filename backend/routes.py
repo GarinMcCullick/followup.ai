@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from firebase import add_document, get_document  # Correct the typo here
+from firebase import add_document, get_document, update_document  # Correct the typo here
 from flask_cors import CORS
 import datetime
 from datetime import datetime, timedelta
@@ -283,6 +283,8 @@ def send_email():
         to = data.get('to')
         subject = data.get('subject')
         body = data.get('body')
+        email_type = data.get('email_type')  # "cover_letter" or "follow_up"
+        doc_id = data.get('id')  # Assuming the document ID is passed in the request
 
         if not to or not subject or not body:
             return jsonify({"error": "Missing required fields"}), 400
@@ -311,6 +313,33 @@ def send_email():
         if response.status_code != 200:
             logging.error(f"Failed to send email: {response.status_code} - {response.text}")
             return jsonify({"error": "Failed to send email", "details": response.json()}), 400
+
+         # Update the Firestore document to indicate the email was sent
+        if doc_id:
+            if email_type == "cover_letter":
+                update_document(doc_id, {
+                    "cover_letter_sent": True,
+                    "cover_letter_sent_at": firestore.SERVER_TIMESTAMP,
+                })
+                logging.info(f"Updated Firestore document {doc_id} with cover_letter_sent status.")
+            elif email_type == "follow_up":
+                update_document(doc_id, {
+                    "follow_up_sent": True,
+                    "follow_up_sent_at": firestore.SERVER_TIMESTAMP,
+                })
+                logging.info(f"Updated Firestore document {doc_id} with follow_up_sent status.")
+            elif email_type == "send_all_cover_letters":
+                update_document(doc_id, {
+                    "cover_letter_sent": True,
+                    "cover_letter_sent_at": firestore.SERVER_TIMESTAMP,
+                })
+                logging.info(f"Updated Firestore document {doc_id} with cover_letter_sent status for send all.")
+            elif email_type == "send_all_follow_ups":
+                update_document(doc_id, {
+                    "follow_up_sent": True,
+                    "follow_up_sent_at": firestore.SERVER_TIMESTAMP,
+                })
+                logging.info(f"Updated Firestore document {doc_id} with follow_up_sent status for send all.")
 
         return jsonify({"message": "Email sent successfully!"}), 200
 
