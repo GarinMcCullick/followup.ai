@@ -490,7 +490,15 @@ export default function App() {
                       </td>
                       <td className="job-send">
                         {job.cover_letter_sent ? (
-                          <span className="sent-text">Sent</span>
+                          <span
+                            id="cover_letter_sent_text"
+                            className="sent-text"
+                          >
+                            {" "}
+                            {new Date(
+                              job.cover_letter_sent_at
+                            ).toLocaleDateString("en-US")}
+                          </span>
                         ) : (
                           <button
                             onClick={() =>
@@ -517,7 +525,12 @@ export default function App() {
                       </td>
                       <td className="job-send">
                         {job.follow_up_sent ? (
-                          <span className="sent-text">Sent</span>
+                          <span className="sent-text">
+                            {" "}
+                            {new Date(job.follow_up_sent_at).toLocaleDateString(
+                              "en-US"
+                            )}
+                          </span>
                         ) : (
                           <button
                             onClick={() =>

@@ -399,7 +399,10 @@ button {
 
 .sent-text {
   color: #4caf50; /* Green text */
-  font-weight: bold;
+}
+
+#cover_letter_sent_text {
+  color: #4e9fff; /* Green text */
 }
 
 .loader {
