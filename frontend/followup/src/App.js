@@ -43,11 +43,9 @@ export default function App() {
           }
         );
 
-        // Log the response to check the token structure
         console.log("Response from token exchange:", res.data);
 
-        const { id_token } = res.data;
-        const { access_token } = res.data; // Extract access token from response
+        const { id_token, access_token } = res.data;
         localStorage.setItem("gmailAccessToken", access_token);
 
         if (!id_token) {
@@ -60,7 +58,6 @@ export default function App() {
         setUser(decodedToken);
         navigate("/");
 
-        // Now that login is successful, fetch the jobs
         const fetchJobs = async () => {
           try {
             const response = await fetch("http://localhost:5000/api/get-jobs", {
@@ -72,9 +69,7 @@ export default function App() {
 
             if (response.ok) {
               const jobData = await response.json();
-              // Handle the received jobs data, for example:
               console.log("Fetched jobs:", jobData);
-              // Update your state with the job data
               setJobs(jobData);
             } else {
               console.error("Failed to fetch jobs");
@@ -84,7 +79,7 @@ export default function App() {
           }
         };
 
-        fetchJobs(); // Fetch jobs after login success
+        fetchJobs();
       } catch (error) {
         console.error("Error during Google login callback:", error);
         alert("Login failed. Please try again.");
@@ -100,10 +95,9 @@ export default function App() {
     if (code) {
       handleGoogleCallback(code);
     }
-  }, [handleGoogleCallback]); // Now it's safe to use handleGoogleCallback here
+  }, [handleGoogleCallback]);
 
   const handleViewFollowUp = async (jobId) => {
-    // Set loading for the specific job
     setButtonLoadingState((prevState) => ({ ...prevState, [jobId]: true }));
 
     try {
@@ -121,7 +115,6 @@ export default function App() {
       console.error("Error fetching updated job:", err);
       alert("Failed to load job details.");
     } finally {
-      // Set loading to false after fetch completes for this specific job
       setButtonLoadingState((prevState) => ({ ...prevState, [jobId]: false }));
     }
   };
@@ -146,11 +139,10 @@ export default function App() {
       formData.append("jobPosting", jobPosting);
       formData.append("resume", resumeFile);
 
-      // Send the token with the request to the backend
       const res = await axios.post("http://localhost:5000/generate", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -165,7 +157,6 @@ export default function App() {
 
   async function sendEmail(job, type) {
     try {
-      // Set loading state for the specific job
       setButtonLoadingState((prevState) => ({ ...prevState, [job.id]: true }));
 
       const { to, id, subject, body } = job;
@@ -192,7 +183,6 @@ export default function App() {
 
       console.log(`Email sent successfully for type: ${type}`);
 
-      // Update the job's status in the UI
       setJobs((prevJobs) =>
         prevJobs.map((j) =>
           j.id === job.id
@@ -213,7 +203,6 @@ export default function App() {
     } catch (err) {
       console.error(`Error sending email for type ${type}:`, err.message);
     } finally {
-      // Reset loading state for the specific job
       setButtonLoadingState((prevState) => ({ ...prevState, [job.id]: false }));
     }
   }
@@ -225,7 +214,7 @@ export default function App() {
       "openid",
       "profile",
       "email",
-      "https://www.googleapis.com/auth/gmail.send", // ✨ Add this!
+      "https://www.googleapis.com/auth/gmail.send",
     ].join(" ");
     const responseType = "code";
     const accessType = "offline";
@@ -264,7 +253,7 @@ export default function App() {
       )}
       <div className="page-container text-white bg-black min-h-screen p-6">
         <h1 className="Title text-4xl font-bold mb-2">followup.ai</h1>
-        <p className="User mb-4">Signed in as {user.name}</p>
+        <p className="User mb-4">Signed in as {user.given_name}</p>
         <textarea
           value={jobPosting}
           onChange={(e) => setJobPosting(e.target.value)}

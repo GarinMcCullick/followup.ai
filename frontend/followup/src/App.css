@@ -1,3 +1,7 @@
+:root {
+  color-scheme: dark;
+}
+
 .page-container {
   width: 100%;
   max-width: 100vw;
@@ -42,9 +46,20 @@
   }
 }
 
+.User {
+  background-image: linear-gradient(90deg, #deb500 0%, #ff002b 100%);
+  background-clip: text;
+  color: transparent;
+  background-size: 300%;
+  animation: bg-animation 15s infinite alternate;
+  font-family: "Corben", cursive;
+  line-height: 3vw;
+}
+
 .page-container textarea {
   width: 90%;
   height: 50vh;
+  max-height: 75vh;
   margin-top: 1rem;
   border: none;
   background-color: rgba(255, 255, 255, 0.1);
@@ -103,11 +118,12 @@
   color: #1a1a1a;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .generate-button:hover {
-  background-color: green;
+  background-color: #059669; /* Slightly darker green */
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); /* Soft shadow */
   color: #fff;
 }
 
