@@ -38,8 +38,16 @@ def get_document(doc_id):
 
 def update_document(doc_id, data):
     doc_ref = db.collection("jobs").document(doc_id)
-    doc_ref.update(data)
-    if doc.exists:
-        return doc.to_dict()
-    else:
+    try:
+        # Update the document
+        doc_ref.update(data)
+        # Retrieve the updated document
+        updated_doc = doc_ref.get()
+        if updated_doc.exists:
+            return updated_doc.to_dict()
+        else:
+            return None
+    except Exception as e:
+        # Log the error and return None if the update fails
+        print(f"Error updating document {doc_id}: {e}")
         return None
