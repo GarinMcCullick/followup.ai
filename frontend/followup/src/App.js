@@ -266,7 +266,7 @@ export default function App() {
             className="file-input hidden"
           />
           <span className="cursor-pointer bg-gray-700 px-4 py-2 rounded inline-block">
-            {fileName ? `📂 ${fileName}` : "📂 Choose File"}
+            {fileName ? `📂 ${fileName}` : "📂 upload resume"}
           </span>
         </label>
 
